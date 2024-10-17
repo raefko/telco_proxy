@@ -24,6 +24,11 @@ def tcplog(data):
     print(f"[+][TCP] -- {data}")
 
 
+def is_rtp_packet(data):
+    # RTP packets typically have a version number of 2 in the first two bits
+    return len(data) > 1 and (data[0] >> 6) == 2
+
+
 def handle_tcp_client(client_socket):
     # Connect to the target server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -42,6 +47,10 @@ def handle_tcp_client(client_socket):
                 else:
                     tcplog(f"Replacing target IP with proxy IP")
                     data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
+            elif is_rtp_packet(data):
+                print(f"Intercepted RTP packet: {data}")
+            else:
+                tcplog(f"Intercepted TCP packet: {data}")
             destination.send(data)
 
     # Create threads to handle bidirectional data forwarding
@@ -79,6 +88,8 @@ def handle_udp_client(client_socket, client_address):
                 else:
                     udplog(f"Replacing target IP with proxy IP")
                     data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
+            elif is_rtp_packet(data):
+                udplog(f"Intercepted RTP packet: {data}")
             else:
                 udplog(f"Intercepted UDP packet: {data}")
                 if PROXY_IP.encode() in data:
