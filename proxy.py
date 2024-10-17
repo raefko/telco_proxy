@@ -16,6 +16,14 @@ tcp_socket = None
 udp_socket = None
 
 
+def udplog(data):
+    print(f"[+][UDP] -- {data}")
+
+
+def tcplog(data):
+    print(f"[+][TCP] -- {data}")
+
+
 def handle_tcp_client(client_socket):
     # Connect to the target server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,7 +35,7 @@ def handle_tcp_client(client_socket):
             if len(data) == 0:
                 break
             if b"SIP" in data:
-                print(f"Intercepted SIP packet: {data}")
+                tcplog(f"Intercepted SIP packet: {data}")
             destination.send(data)
 
     # Create threads to handle bidirectional data forwarding
@@ -58,7 +66,9 @@ def handle_udp_client(client_socket, client_address):
             if len(data) == 0:
                 break
             if b"SIP" in data:
-                print(f"Intercepted SIP packet: {data}")
+                udplog(f"Intercepted SIP packet: {data}")
+            else:
+                udplog(f"Intercepted UDP packet: {data}")
             destination.sendto(data, destination_address)
 
     # Create threads to handle bidirectional data forwarding
@@ -86,12 +96,12 @@ def start_proxy():
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.bind((PROXY_IP, PROXY_PORT))
     tcp_socket.listen(5)
-    print(f"TCP Proxy listening on {PROXY_IP}:{PROXY_PORT}")
+    tcplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
 
     # UDP socket
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.bind((PROXY_IP, PROXY_PORT))
-    print(f"UDP Proxy listening on {PROXY_IP}:{PROXY_PORT}")
+    udplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
 
     while True:
         # Use select to wait for incoming connections on both TCP and UDP sockets
@@ -102,7 +112,7 @@ def start_proxy():
                 # Handle TCP connections
                 client_socket, addr = tcp_socket.accept()
                 client_ip = addr[0]
-                print(f"Accepted TCP connection from {addr}")
+                tcplog(f"Connection from {addr}")
                 client_handler = threading.Thread(
                     target=handle_tcp_client, args=(client_socket,)
                 )
@@ -111,7 +121,7 @@ def start_proxy():
                 # Handle UDP connections
                 data, addr = udp_socket.recvfrom(4096)
                 client_ip = addr[0]
-                print(f"Accepted UDP connection from {addr}")
+                udplog(f"Connection from {addr}")
                 client_handler = threading.Thread(
                     target=handle_udp_client, args=(udp_socket, addr)
                 )
