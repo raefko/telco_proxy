@@ -6,7 +6,8 @@ import select
 import re
 
 # Define the proxy server's IP and port
-PROXY_IP = "127.0.0.1"
+PROXY_IP = "0.0.0.0"
+LOCAL_IP = "0.0.0.0"
 PROXY_PORT = 5060
 PROXY_UDP_PORT = 5062
 TARGET_IP = "80.156.100.67"
@@ -58,10 +59,10 @@ def handle_tcp_client(client_socket):
             if b"SIP" in data:
                 # pretty_print_sip(data)
                 # tcplog(f"Intercepted SIP packet: {data}")
-                if PROXY_IP.encode() in data:
+                if LOCAL_IP.encode() in data:
                     tcplog("===>")
                     tcplog(f"Replacing proxy IP with client IP")
-                    data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
+                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
                     if b"m=audio" in data:
                         pattern = re.compile(rb"m=audio \d+")
                         tcplog(
@@ -79,7 +80,7 @@ def handle_tcp_client(client_socket):
                 else:
                     tcplog("<===")
                     tcplog(f"Replacing target IP with proxy IP")
-                    data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
+                    data = data.replace(TARGET_IP.encode(), LOCAL_IP.encode())
             elif is_rtp_packet(data):
                 print(f"Intercepted RTP packet: {data}")
             else:
@@ -117,22 +118,22 @@ def handle_udp_client(client_socket, client_address):
                 break
             if b"SIP" in data:
                 udplog(f"Intercepted SIP packet: {data}")
-                if PROXY_IP.encode() in data:
+                if LOCAL_IP.encode() in data:
                     udplog(f"Replacing proxy IP with client IP")
-                    data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
+                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
                 else:
                     udplog(f"Replacing target IP with proxy IP")
-                    data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
+                    data = data.replace(TARGET_IP.encode(), LOCAL_IP.encode())
             elif is_rtp_packet(data):
                 udplog(f"Intercepted RTP packet: {data}")
             else:
                 udplog(f"Intercepted UDP packet: {data}")
-                if PROXY_IP.encode() in data:
+                if LOCAL_IP.encode() in data:
                     udplog(f"Replacing proxy IP with client IP")
-                    data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
+                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
                 else:
                     udplog(f"Replacing target IP with proxy IP")
-                    data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
+                    data = data.replace(TARGET_IP.encode(), LOCAL_IP.encode())
             destination.sendto(data, destination_address)
 
     # Create threads to handle bidirectional data forwarding
