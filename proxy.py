@@ -102,27 +102,20 @@ def start_proxy():
                 # Handle TCP connections
                 client_socket, addr = tcp_socket.accept()
                 client_ip = addr[0]
-                if client_ip == CLIENT_IP:
-                    print(f"Accepted TCP connection from {addr}")
-                    client_handler = threading.Thread(
-                        target=handle_tcp_client, args=(client_socket,)
-                    )
-                    client_handler.start()
-                else:
-                    print(f"Rejected TCP connection from {addr}")
-                    client_socket.close()
+                print(f"Accepted TCP connection from {addr}")
+                client_handler = threading.Thread(
+                    target=handle_tcp_client, args=(client_socket,)
+                )
+                client_handler.start()
             elif s == udp_socket:
                 # Handle UDP connections
                 data, addr = udp_socket.recvfrom(4096)
                 client_ip = addr[0]
-                if client_ip == CLIENT_IP:
-                    print(f"Accepted UDP connection from {addr}")
-                    client_handler = threading.Thread(
-                        target=handle_udp_client, args=(udp_socket, addr)
-                    )
-                    client_handler.start()
-                else:
-                    print(f"Rejected UDP connection from {addr}")
+                print(f"Accepted UDP connection from {addr}")
+                client_handler = threading.Thread(
+                    target=handle_udp_client, args=(udp_socket, addr)
+                )
+                client_handler.start()
 
 
 def signal_handler(sig, frame):
