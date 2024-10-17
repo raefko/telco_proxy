@@ -3,6 +3,7 @@ import threading
 import signal
 import sys
 import select
+import re
 
 # Define the proxy server's IP and port
 PROXY_IP = "0.0.0.0"
@@ -62,7 +63,8 @@ def handle_tcp_client(client_socket):
                     data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
                     if b"m=audio" in data:
                         tcplog(f"Replacing audio port with proxy port")
-                        data = data.replace(b"m=audio 5060", b"m=audio 5062")
+                        pattern = re.compile(rb"m=audio \d+")
+                        data = re.sub(pattern, b"m=audio 5062", data)
                         udp_socket = socket.socket(
                             socket.AF_INET, socket.SOCK_DGRAM
                         )
