@@ -63,7 +63,7 @@ def handle_tcp_client(client_socket):
                     tcplog("===>")
                     tcplog(f"Replacing proxy IP with client IP")
                     data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
-                    pattern = re.compile(rb"m=audio (\d+)")
+                    pattern = re.compile(rb"m=audio (\d+) ")
                     match = pattern.search(data)
                     if match:
                         original_port = match.group(1).decode()
