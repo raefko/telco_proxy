@@ -56,7 +56,7 @@ def handle_tcp_client(client_socket):
             if len(data) == 0:
                 break
             if b"SIP" in data:
-                # pretty_print_sip(data)
+                pretty_print_sip(data)
                 # tcplog(f"Intercepted SIP packet: {data}")
                 if PROXY_IP.encode() in data:
                     tcplog("===>")
