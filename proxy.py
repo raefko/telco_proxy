@@ -22,9 +22,9 @@ def handle_client(client_socket):
                 break
             if b"SIP" in data:
                 print(f"Intercepted SIP packet: {data}")
-                data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
-                print("=====================================")
-                print(f"Modified SIP packet: {data}")
+                # data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
+                # print("=====================================")
+                # print(f"Modified SIP packet: {data}")
             destination.send(data)
 
     # Create threads to handle bidirectional data forwarding
@@ -54,7 +54,7 @@ def start_proxy():
     while True:
         client_socket, addr = proxy_socket.accept()
         client_ip = addr[0]
-        if client_ip == CLIENT_IP:
+        if client_ip == "127.0.0.1":
             print(f"Accepted connection from {addr}")
             client_handler = threading.Thread(
                 target=handle_client, args=(client_socket,)
