@@ -86,6 +86,7 @@ def handle_tcp_client(client_socket):
                 tcplog(f"Intercepted TCP packet: {data}")
             print("[/] Sending...")
             destination.send(data)
+            print("[/] Sent")
 
     # Create threads to handle bidirectional data forwarding
     client_to_server = threading.Thread(
