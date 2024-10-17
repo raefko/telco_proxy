@@ -11,7 +11,7 @@ PROXY_PORT = 5060
 PROXY_UDP_PORT = 5062
 TARGET_IP = "80.156.100.67"
 TARGET_PORT = 5060
-
+PROXY_AUDIO = "m=audio 5062"
 CLIENT_IP = "51.1.65.101"
 
 tcp_socket = None
@@ -56,15 +56,18 @@ def handle_tcp_client(client_socket):
             if len(data) == 0:
                 break
             if b"SIP" in data:
-                pretty_print_sip(data)
+                # pretty_print_sip(data)
                 # tcplog(f"Intercepted SIP packet: {data}")
                 if PROXY_IP.encode() in data:
+                    tcplog("===>")
                     tcplog(f"Replacing proxy IP with client IP")
                     data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
                     if b"m=audio" in data:
-                        tcplog(f"Replacing audio port with proxy port")
                         pattern = re.compile(rb"m=audio \d+")
-                        data = re.sub(pattern, b"m=audio 5062", data)
+                        tcplog(
+                            f"Replacing audio port {pattern} with proxy port {PROXY_AUDIO}"
+                        )
+                        data = re.sub(pattern, PROXY_AUDIO.encode(), data)
                         udp_socket = socket.socket(
                             socket.AF_INET, socket.SOCK_DGRAM
                         )
@@ -73,6 +76,7 @@ def handle_tcp_client(client_socket):
                             f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}"
                         )
                 else:
+                    tcplog("<===")
                     tcplog(f"Replacing target IP with proxy IP")
                     data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
             elif is_rtp_packet(data):
