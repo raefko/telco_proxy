@@ -62,7 +62,7 @@ def handle_tcp_client(client_socket):
                 if LOCAL_IP.encode() in data:
                     tcplog("===>")
                     tcplog(f"Replacing proxy IP with client IP")
-                    data = data.replace(LOCAL_IP.encode(), TARGET_IP.encode())
+                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
                     pattern = re.compile(rb"m=audio (\d+)")
                     match = pattern.search(data)
                     if match:
@@ -74,7 +74,7 @@ def handle_tcp_client(client_socket):
                 else:
                     tcplog("<===")
                     tcplog(f"Replacing target IP with proxy IP")
-                    data = data.replace(CLIENT_IP.encode(), LOCAL_IP.encode())
+                    data = data.replace(TARGET_IP.encode(), LOCAL_IP.encode())
             elif is_rtp_packet(data):
                 print(f"Intercepted RTP packet: {data}")
             else:
