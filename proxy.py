@@ -7,7 +7,7 @@ import re
 
 # Define the proxy server's IP and port
 PROXY_IP = "0.0.0.0"
-LOCAL_IP = "127.0.0.1"
+LOCAL_IP = "0.0.0.0"
 PROXY_PORT = 5060
 PROXY_UDP_PORT = 5062
 TARGET_IP = "80.156.100.67"
@@ -69,16 +69,7 @@ def handle_tcp_client(client_socket):
                             f"Replacing audio port {pattern} with proxy port {PROXY_AUDIO}"
                         )
                         data = re.sub(pattern, PROXY_AUDIO.encode(), data)
-                        pretty_print_sip(data)
-                        udp_socket = socket.socket(
-                            socket.AF_INET, socket.SOCK_DGRAM
-                        )
-                        udp_socket.bind((PROXY_IP, PROXY_UDP_PORT))
-                        udp_thread = threading.Thread(target=handle_udp_client)
-                        udp_thread.start()
-                        udplog(
-                            f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}"
-                        )
+                        # pretty_print_sip(data)
                 else:
                     tcplog("<===")
                     tcplog(f"Replacing target IP with proxy IP")
@@ -163,8 +154,14 @@ def start_proxy():
     tcp_socket.listen(5)
     tcplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
 
+    # UDP socket
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.bind((PROXY_IP, PROXY_UDP_PORT))
+    udplog(f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}")
+    udp_thread = threading.Thread(target=handle_udp_client)
+    udp_thread.start()
     while True:
-        # Use select to wait for incoming connections on the TCP socket
+        # Use select to wait for incoming connections on both TCP and UDP sockets
         readable, _, _ = select.select([tcp_socket], [], [])
 
         for s in readable:
