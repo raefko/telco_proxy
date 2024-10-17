@@ -7,7 +7,7 @@ import re
 
 # Define the proxy server's IP and port
 PROXY_IP = "0.0.0.0"
-LOCAL_IP = "0.0.0.0"
+LOCAL_IP = "127.0.0.1"
 PROXY_PORT = 5060
 PROXY_UDP_PORT = 5062
 TARGET_IP = "80.156.100.67"
@@ -74,6 +74,8 @@ def handle_tcp_client(client_socket):
                             socket.AF_INET, socket.SOCK_DGRAM
                         )
                         udp_socket.bind((PROXY_IP, PROXY_UDP_PORT))
+                        udp_thread = threading.Thread(target=handle_udp_client)
+                        udp_thread.start()
                         udplog(
                             f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}"
                         )
@@ -107,52 +109,50 @@ def handle_tcp_client(client_socket):
     server_socket.close()
 
 
-def handle_udp_client(client_socket, client_address):
-    # Create a UDP socket for the target server
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def handle_udp_client():
+    global udp_socket
+    while True:
+        data, addr = udp_socket.recvfrom(4096)
+        client_ip = addr[0]
+        if client_ip == CLIENT_IP:
+            print(f"Accepted UDP connection from {addr}")
+            # Create a UDP socket for the target server
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    def forward_data(source, destination, destination_address):
-        while True:
-            data, addr = source.recvfrom(4096)
-            if len(data) == 0:
-                break
-            if b"SIP" in data:
-                udplog(f"Intercepted SIP packet: {data}")
-                if LOCAL_IP.encode() in data:
-                    udplog(f"Replacing proxy IP with client IP")
-                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
-                else:
-                    udplog(f"Replacing target IP with proxy IP")
-                    data = data.replace(TARGET_IP.encode(), LOCAL_IP.encode())
-            elif is_rtp_packet(data):
-                udplog(f"Intercepted RTP packet: {data}")
-            else:
-                udplog(f"Intercepted UDP packet: {data}")
-                if LOCAL_IP.encode() in data:
-                    udplog(f"Replacing proxy IP with client IP")
-                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
-                else:
-                    udplog(f"Replacing target IP with proxy IP")
-                    data = data.replace(TARGET_IP.encode(), LOCAL_IP.encode())
-            destination.sendto(data, destination_address)
+            def forward_data(source, destination, destination_address):
+                while True:
+                    data, addr = source.recvfrom(4096)
+                    if len(data) == 0:
+                        break
+                    if b"SIP" in data:
+                        pretty_print_sip(data)
+                        # Replace the port number after "m=audio"
+                        pattern = re.compile(rb"m=audio \d+")
+                        data = re.sub(pattern, b"m=audio 5062", data)
+                    elif is_rtp_packet(data):
+                        print(f"Intercepted RTP packet: {data}")
+                    else:
+                        print(f"Intercepted UDP packet: {data}")
+                    destination.sendto(data, destination_address)
 
-    # Create threads to handle bidirectional data forwarding
-    client_to_server = threading.Thread(
-        target=forward_data,
-        args=(client_socket, server_socket, (TARGET_IP, TARGET_PORT)),
-    )
-    server_to_client = threading.Thread(
-        target=forward_data, args=(server_socket, client_socket, client_address)
-    )
+            # Create threads to handle bidirectional data forwarding
+            client_to_server = threading.Thread(
+                target=forward_data,
+                args=(udp_socket, server_socket, (TARGET_IP, TARGET_PORT)),
+            )
+            server_to_client = threading.Thread(
+                target=forward_data, args=(server_socket, udp_socket, addr)
+            )
 
-    client_to_server.start()
-    server_to_client.start()
+            client_to_server.start()
+            server_to_client.start()
 
-    client_to_server.join()
-    server_to_client.join()
+            client_to_server.join()
+            server_to_client.join()
 
-    client_socket.close()
-    server_socket.close()
+            server_socket.close()
+        else:
+            print(f"Rejected UDP connection from {addr}")
 
 
 def start_proxy():
@@ -163,13 +163,8 @@ def start_proxy():
     tcp_socket.listen(5)
     tcplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
 
-    # UDP socket
-    # udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # udp_socket.bind((PROXY_IP, PROXY_PORT))
-    # udplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
-
     while True:
-        # Use select to wait for incoming connections on both TCP and UDP sockets
+        # Use select to wait for incoming connections on the TCP socket
         readable, _, _ = select.select([tcp_socket], [], [])
 
         for s in readable:
