@@ -9,7 +9,7 @@ import re
 PROXY_IP = "0.0.0.0"
 LOCAL_IP = "127.0.0.1"
 PROXY_PORT = 5060
-PROXY_UDP_PORT = 5062
+PROXY_UDP_PORT = "5062"
 TARGET_IP = "80.156.100.67"
 TARGET_PORT = 5060
 PROXY_AUDIO = "m=audio 5062"
@@ -157,8 +157,8 @@ def start_proxy():
 
     # UDP socket
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind((PROXY_IP, PROXY_UDP_PORT))
-    udplog(f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}")
+    udp_socket.bind((PROXY_IP, int(PROXY_UDP_PORT)))
+    udplog(f"Proxy listening on {PROXY_IP}:{int(PROXY_UDP_PORT)}")
     udp_thread = threading.Thread(target=handle_udp_client)
     udp_thread.start()
     while True:
