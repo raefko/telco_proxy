@@ -1,5 +1,7 @@
 import socket
 import threading
+import signal
+import sys
 
 # Define the proxy server's IP and port
 PROXY_IP = "0.0.0.0"
@@ -8,6 +10,9 @@ TARGET_IP = "80.156.100.67"
 TARGET_PORT = 5060
 
 CLIENT_IP = "51.1.65.101"
+
+tcp_socket = None
+udp_socket = None
 
 
 def handle_tcp_client(client_socket):
@@ -75,6 +80,7 @@ def handle_udp_client(client_socket, client_address):
 
 
 def start_proxy():
+    global tcp_socket, udp_socket
     # TCP socket
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.bind((PROXY_IP, PROXY_PORT))
@@ -113,5 +119,15 @@ def start_proxy():
             print(f"Rejected UDP connection from {addr}")
 
 
+def signal_handler(sig, frame):
+    print("Shutting down proxy...")
+    if tcp_socket:
+        tcp_socket.close()
+    if udp_socket:
+        udp_socket.close()
+    sys.exit(0)
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, signal_handler)
     start_proxy()
