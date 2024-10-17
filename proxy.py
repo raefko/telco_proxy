@@ -68,6 +68,7 @@ def handle_tcp_client(client_socket):
                             f"Replacing audio port {pattern} with proxy port {PROXY_AUDIO}"
                         )
                         data = re.sub(pattern, PROXY_AUDIO.encode(), data)
+                        pretty_print_sip(data)
                         udp_socket = socket.socket(
                             socket.AF_INET, socket.SOCK_DGRAM
                         )
@@ -83,6 +84,7 @@ def handle_tcp_client(client_socket):
                 print(f"Intercepted RTP packet: {data}")
             else:
                 tcplog(f"Intercepted TCP packet: {data}")
+            print("[/] Sending...")
             destination.send(data)
 
     # Create threads to handle bidirectional data forwarding
