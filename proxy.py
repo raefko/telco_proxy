@@ -160,7 +160,7 @@ def start_proxy():
 
     while True:
         # Use select to wait for incoming connections on both TCP and UDP sockets
-        readable, _, _ = select.select([tcp_socket, udp_socket], [], [])
+        readable, _, _ = select.select([tcp_socket], [], [])
 
         for s in readable:
             if s == tcp_socket:
@@ -172,9 +172,8 @@ def start_proxy():
                     target=handle_tcp_client, args=(client_socket,)
                 )
                 client_handler.start()
-            elif s == udp_socket:
-                # Handle UDP connections
-                udplog("UDP connection received NEED TO HANDLE")
+            else:
+                exit("Unknown socket")
 
 
 def signal_handler(sig, frame):
