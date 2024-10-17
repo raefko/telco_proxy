@@ -7,6 +7,7 @@ import select
 # Define the proxy server's IP and port
 PROXY_IP = "0.0.0.0"
 PROXY_PORT = 5060
+PROXY_UDP_PORT = 5062
 TARGET_IP = "80.156.100.67"
 TARGET_PORT = 5060
 
@@ -42,11 +43,13 @@ def is_rtp_packet(data):
 
 
 def handle_tcp_client(client_socket):
+    global udp_socket
     # Connect to the target server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.connect((TARGET_IP, TARGET_PORT))
 
     def forward_data(source, destination):
+        global udp_socket
         while True:
             data = source.recv(4096)
             if len(data) == 0:
@@ -57,6 +60,16 @@ def handle_tcp_client(client_socket):
                 if PROXY_IP.encode() in data:
                     tcplog(f"Replacing proxy IP with client IP")
                     data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
+                    if b"m=audio" in data:
+                        tcplog(f"Replacing audio port with proxy port")
+                        data = data.replace(b"m=audio 5060", b"m=audio 5062")
+                        udp_socket = socket.socket(
+                            socket.AF_INET, socket.SOCK_DGRAM
+                        )
+                        udp_socket.bind((PROXY_IP, PROXY_UDP_PORT))
+                        udplog(
+                            f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}"
+                        )
                 else:
                     tcplog(f"Replacing target IP with proxy IP")
                     data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
@@ -141,9 +154,9 @@ def start_proxy():
     tcplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
 
     # UDP socket
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.bind((PROXY_IP, PROXY_PORT))
-    udplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
+    # udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # udp_socket.bind((PROXY_IP, PROXY_PORT))
+    # udplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
 
     while True:
         # Use select to wait for incoming connections on both TCP and UDP sockets
@@ -161,13 +174,7 @@ def start_proxy():
                 client_handler.start()
             elif s == udp_socket:
                 # Handle UDP connections
-                data, addr = udp_socket.recvfrom(4096)
-                client_ip = addr[0]
-                udplog(f"Connection from {addr}")
-                client_handler = threading.Thread(
-                    target=handle_udp_client, args=(udp_socket, addr)
-                )
-                client_handler.start()
+                udplog("UDP connection received NEED TO HANDLE")
 
 
 def signal_handler(sig, frame):
