@@ -24,6 +24,18 @@ def tcplog(data):
     print(f"[+][TCP] -- {data}")
 
 
+def pretty_print_sip(data):
+    try:
+        message = data.decode("utf-8")
+        lines = message.split("\r\n")
+        print("----- SIP Packet -----")
+        for line in lines:
+            print(line)
+        print("----------------------")
+    except UnicodeDecodeError:
+        print("Failed to decode SIP packet")
+
+
 def is_rtp_packet(data):
     # RTP packets typically have a version number of 2 in the first two bits
     return len(data) > 1 and (data[0] >> 6) == 2
@@ -40,6 +52,7 @@ def handle_tcp_client(client_socket):
             if len(data) == 0:
                 break
             if b"SIP" in data:
+                pretty_print_sip(data)
                 # tcplog(f"Intercepted SIP packet: {data}")
                 if PROXY_IP.encode() in data:
                     tcplog(f"Replacing proxy IP with client IP")
