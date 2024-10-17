@@ -7,7 +7,7 @@ import re
 
 # Define the proxy server's IP and port
 PROXY_IP = "0.0.0.0"
-LOCAL_IP = "0.0.0.0"
+LOCAL_IP = "127.0.0.1"
 PROXY_PORT = 5060
 PROXY_UDP_PORT = 5062
 TARGET_IP = "80.156.100.67"
