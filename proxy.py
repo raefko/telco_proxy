@@ -22,6 +22,7 @@ tcp_socket = None
 udp_socket = None
 
 stop_event = threading.Event()
+rtp_mapping = {}
 
 
 def udplog(data):
@@ -32,11 +33,11 @@ def tcplog(data):
     print(f"[+][TCP] -- {data}")
 
 
-def pretty_print_sip(data):
+def pretty_print_sip(data, protocol):
     try:
         message = data.decode("utf-8")
         lines = message.split("\r\n")
-        print("----- SIP Packet -----")
+        print(f"----- {protocol} == SIP Packet -----")
         for line in lines:
             print(line)
         print("----------------------")
@@ -92,7 +93,6 @@ def handle_tcp_client(client_socket):
                 break
             method = detect_method(data)
             if b"SIP" in data:
-                pretty_print_sip(data)
                 if LOCAL_IP.encode() in data:
                     tcplog(f"|{method}| Sending ==>")
                     tcplog(f"Replacing {LOCAL_IP} with {CLIENT_IP}")
@@ -151,7 +151,7 @@ def handle_udp_client():
                     if len(data) == 0:
                         break
                     if b"SIP" in data:
-                        pretty_print_sip(data)
+                        pretty_print_sip(data, "udp")
                         # Replace the port number after "m=audio"
                         pattern = re.compile(rb"m=audio \d+")
                         data = re.sub(pattern, b"m=audio 5062", data)
