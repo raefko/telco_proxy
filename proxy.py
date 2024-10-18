@@ -6,7 +6,8 @@ import select
 import re
 
 # Define the proxy server's IP and port
-PROXY_IP = "127.0.0.1"
+PROXY_IP = "0.0.0.0"
+LOCAL_IP = "127.0.0.1"
 
 PROXY_AUDIO = "m=audio 5062"
 PROXY_PORT = 5060
@@ -94,8 +95,8 @@ def handle_tcp_client(client_socket):
                 pretty_print_sip(data)
                 if PROXY_IP.encode() in data:
                     tcplog(f"|{method}| Sending ==>")
-                    tcplog(f"Replacing {PROXY_IP} with {TARGET_IP}")
-                    data = data.replace(PROXY_IP.encode(), TARGET_IP.encode())
+                    tcplog(f"Replacing {PROXY_IP} with {CLIENT_IP}")
+                    data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
                     pattern = re.compile(rb"m=audio (\d+)")
                     match = pattern.search(data)
                     if match:
