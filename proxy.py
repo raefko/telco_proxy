@@ -93,10 +93,10 @@ def handle_tcp_client(client_socket):
             method = detect_method(data)
             if b"SIP" in data:
                 pretty_print_sip(data)
-                if PROXY_IP.encode() in data:
+                if LOCAL_IP.encode() in data:
                     tcplog(f"|{method}| Sending ==>")
-                    tcplog(f"Replacing {PROXY_IP} with {CLIENT_IP}")
-                    data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
+                    tcplog(f"Replacing {LOCAL_IP} with {CLIENT_IP}")
+                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
                     pattern = re.compile(rb"m=audio (\d+)")
                     match = pattern.search(data)
                     if match:
