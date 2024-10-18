@@ -89,7 +89,7 @@ def handle_tcp_client(client_socket):
                 break
             method = detect_method(data)
             if b"SIP" in data:
-                # pretty_print_sip(data)
+                pretty_print_sip(data)
                 if PROXY_IP.encode() in data:
                     tcplog(f"|{method}|===>")
                     tcplog(f"Replacing {PROXY_IP} with {CLIENT_IP}")
