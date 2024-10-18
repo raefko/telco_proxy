@@ -21,7 +21,7 @@ CLIENT_IP = "51.1.65.101"
 tcp_socket = None
 udp_socket = None
 
-stop_event = threading.Event()
+socket_list = []
 rtp_mapping = {}
 
 
@@ -80,7 +80,7 @@ def send_message(socket, data):
 
 
 def handle_tcp_client(client_socket):
-    global udp_socket
+    global udp_socket, socket_list
     # Connect to the target server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.connect((TARGET_IP, TARGET_PORT))
@@ -136,7 +136,7 @@ def handle_tcp_client(client_socket):
 
 
 def handle_udp_client():
-    global udp_socket
+    global udp_socket, socket_list
     while True:
         data, addr = udp_socket.recvfrom(4096)
         client_ip = addr[0]
@@ -182,16 +182,18 @@ def handle_udp_client():
 
 
 def start_proxy():
-    global tcp_socket, udp_socket
+    global tcp_socket, udp_socket, socket_list
     # TCP socket
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_socket.bind((PROXY_IP, PROXY_PORT))
     tcp_socket.listen(5)
+    socket_list.append(tcp_socket)
     tcplog(f"Proxy listening on {PROXY_IP}:{PROXY_PORT}")
 
     # UDP socket
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.bind((PROXY_IP, PROXY_UDP_PORT))
+    socket_list.append(udp_socket)
     udplog(f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}")
     udp_thread = threading.Thread(target=handle_udp_client)
     udp_thread.start()
@@ -203,6 +205,7 @@ def start_proxy():
             if s == tcp_socket:
                 # Handle TCP connections
                 client_socket, addr = tcp_socket.accept()
+                socket_list.append(client_socket)
                 client_ip = addr[0]
                 tcplog(f"Connection from {addr}")
                 client_handler = threading.Thread(
@@ -215,10 +218,8 @@ def start_proxy():
 
 def signal_handler(sig, frame):
     print("Shutting down proxy...")
-    if tcp_socket:
-        tcp_socket.close()
-    if udp_socket:
-        udp_socket.close()
+    for s in socket_list:
+        s.close()
     sys.exit(0)
 
 
