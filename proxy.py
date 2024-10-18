@@ -20,6 +20,8 @@ CLIENT_IP = "51.1.65.101"
 tcp_socket = None
 udp_socket = None
 
+stop_event = threading.Event()
+
 
 def udplog(data):
     print(f"[+][UDP] -- {data}")
@@ -91,9 +93,9 @@ def handle_tcp_client(client_socket):
             if b"SIP" in data:
                 pretty_print_sip(data)
                 if PROXY_IP.encode() in data:
-                    tcplog(f"|{method}|===>")
-                    tcplog(f"Replacing {PROXY_IP} with {CLIENT_IP}")
-                    data = data.replace(PROXY_IP.encode(), CLIENT_IP.encode())
+                    tcplog(f"|{method}| Sending ==>")
+                    tcplog(f"Replacing {PROXY_IP} with {TARGET_IP}")
+                    data = data.replace(PROXY_IP.encode(), TARGET_IP.encode())
                     pattern = re.compile(rb"m=audio (\d+)")
                     match = pattern.search(data)
                     if match:
@@ -105,7 +107,7 @@ def handle_tcp_client(client_socket):
                             pattern, str(PROXY_UDP_PORT).encode(), data
                         )
                 else:
-                    tcplog(f"|{method}|<===")
+                    tcplog(f"|{method}| Receiving <===")
                     tcplog(f"Replacing target IP with proxy IP")
                     data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
             elif is_rtp_packet(data):
