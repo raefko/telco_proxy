@@ -109,7 +109,7 @@ def handle_tcp_client(client_socket):
                         )
                 else:
                     tcplog(f"|{method}| Receiving <===")
-                    tcplog(f"Replacing target IP with proxy IP")
+                    tcplog(f"Replacing {TARGET_IP} with {PROXY_IP}")
                     data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
             elif is_rtp_packet(data):
                 print(f"Intercepted RTP packet: {data}")
