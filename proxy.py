@@ -6,7 +6,7 @@ import select
 import re
 
 # Define the proxy server's IP and port
-PROXY_IP = "0.0.0.0"
+PROXY_IP = "51.1.65.101"
 LOCAL_IP = "127.0.0.1"
 
 PROXY_AUDIO = "m=audio 5062"
