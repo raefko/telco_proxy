@@ -115,6 +115,7 @@ def handle_tcp_client(client_socket):
                 print(f"Intercepted RTP packet: {data}")
             else:
                 tcplog(f"Intercepted TCP packet: {data}")
+                pass
             send_message(destination, data)
 
     # Create threads to handle bidirectional data forwarding
