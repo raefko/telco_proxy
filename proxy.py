@@ -110,6 +110,7 @@ def handle_tcp_client(client_socket):
                             new_port.encode(),
                             data,
                         )
+                        pretty_print_sip(data)
                 else:
                     tcplog(f"|{method}| Receiving <===")
                     tcplog(f"Replacing {TARGET_IP} with {PROXY_IP}")
@@ -197,8 +198,6 @@ def start_proxy():
     udp_socket.bind((PROXY_IP, PROXY_UDP_PORT))
     socket_list.append(udp_socket)
     udplog(f"Proxy listening on {PROXY_IP}:{PROXY_UDP_PORT}")
-    udp_thread = threading.Thread(target=handle_udp_client)
-    udp_thread.start()
     while True:
         # Use select to wait for incoming connections on both TCP and UDP sockets
         readable, _, _ = select.select([tcp_socket, udp_socket], [], [])
@@ -217,7 +216,6 @@ def start_proxy():
             elif s == udp_socket:
                 # Handle UDP connections
                 udplog("UDP connection")
-                socket_list.append(udp_socket)
                 client_handler = threading.Thread(target=handle_udp_client)
                 client_handler.start()
             else:
