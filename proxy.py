@@ -105,7 +105,9 @@ def handle_tcp_client(client_socket):
                             f"Replacing audio port {original_port} with proxy port {PROXY_UDP_PORT}"
                         )
                         data = re.sub(
-                            pattern, str(PROXY_UDP_PORT).encode(), data
+                            pattern,
+                            f"m=audio {str(PROXY_UDP_PORT).encode()}",
+                            data,
                         )
                 else:
                     tcplog(f"|{method}| Receiving <===")
