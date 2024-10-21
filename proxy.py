@@ -85,8 +85,9 @@ def handle_tcp_client(client_socket):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.connect((TARGET_IP, TARGET_PORT))
 
-    def forward_data(source, destination):
+    def forward_data(source, destination, direction):
         global udp_socket
+        print(direction)
         while True:
             data = source.recv(4096)
             if len(data) == 0:
@@ -124,10 +125,12 @@ def handle_tcp_client(client_socket):
 
     # Create threads to handle bidirectional data forwarding
     client_to_server = threading.Thread(
-        target=forward_data, args=(client_socket, server_socket)
+        target=forward_data,
+        args=(client_socket, server_socket, "client => server"),
     )
     server_to_client = threading.Thread(
-        target=forward_data, args=(server_socket, client_socket)
+        target=forward_data,
+        args=(server_socket, client_socket, "server => client"),
     )
 
     client_to_server.start()
