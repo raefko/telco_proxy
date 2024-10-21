@@ -97,21 +97,21 @@ def handle_tcp_client(client_socket):
                 if LOCAL_IP.encode() in data:
                     tcplog(f"|{method}| Sending ==>")
                     tcplog(f"Replacing {LOCAL_IP} with {CLIENT_IP}")
-                    data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
-                    pattern = re.compile(rb"m=audio (\d+)")
-                    match = pattern.search(data)
-                    if match:
-                        original_port = match.group(1).decode()
-                        tcplog(
-                            f"Replacing audio port {original_port} with proxy port {PROXY_UDP_PORT}"
-                        )
-                        new_port = f"m=audio {str(PROXY_UDP_PORT)}"
-                        data = re.sub(
-                            pattern,
-                            new_port.encode(),
-                            data,
-                        )
-                        pretty_print_sip(data, "tcp")
+                    # data = data.replace(LOCAL_IP.encode(), CLIENT_IP.encode())
+                    # pattern = re.compile(rb"m=audio (\d+)")
+                    # match = pattern.search(data)
+                    # if match:
+                    #    original_port = match.group(1).decode()
+                    #    tcplog(
+                    #        f"Replacing audio port {original_port} with proxy port {PROXY_UDP_PORT}"
+                    #    )
+                    #    new_port = f"m=audio {str(PROXY_UDP_PORT)}"
+                    #    data = re.sub(
+                    #        pattern,
+                    #        new_port.encode(),
+                    #        data,
+                    #    )
+                    #    pretty_print_sip(data, "tcp")
                 else:
                     tcplog(f"|{method}| Receiving <===")
                     tcplog(f"Replacing {TARGET_IP} with {LOCAL_IP}")
