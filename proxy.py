@@ -101,7 +101,7 @@ def handle_tcp_client(client_socket):
                     match = pattern.search(data)
                     if match:
                         original_port = match.group(1).decode()
-                        udplog(
+                        tcplog(
                             f"Replacing audio port {original_port} with proxy port {PROXY_UDP_PORT}"
                         )
                         data = re.sub(
@@ -114,7 +114,7 @@ def handle_tcp_client(client_socket):
             elif is_rtp_packet(data):
                 print(f"Intercepted RTP packet: {data}")
             else:
-                tcplog(f"Intercepted TCP packet: {data}")
+                # tcplog(f"Intercepted TCP packet: {data}")
                 pass
             send_message(destination, data)
 
@@ -138,6 +138,7 @@ def handle_tcp_client(client_socket):
 
 def handle_udp_client():
     global udp_socket, socket_list
+    udplog("UDP handler started")
     while True:
         data, addr = udp_socket.recvfrom(4096)
         client_ip = addr[0]
@@ -177,8 +178,6 @@ def handle_udp_client():
         server_to_client.join()
 
         server_socket.close()
-    else:
-        print(f"Rejected UDP connection from {addr}")
 
 
 def start_proxy():
