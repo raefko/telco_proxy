@@ -110,7 +110,7 @@ def handle_tcp_client(client_socket):
                             new_port.encode(),
                             data,
                         )
-                        pretty_print_sip(data)
+                        pretty_print_sip(data, "tcp")
                 else:
                     tcplog(f"|{method}| Receiving <===")
                     tcplog(f"Replacing {TARGET_IP} with {PROXY_IP}")
