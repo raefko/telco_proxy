@@ -113,8 +113,8 @@ def handle_tcp_client(client_socket):
                         pretty_print_sip(data, "tcp")
                 else:
                     tcplog(f"|{method}| Receiving <===")
-                    tcplog(f"Replacing {TARGET_IP} with {PROXY_IP}")
-                    data = data.replace(TARGET_IP.encode(), PROXY_IP.encode())
+                    tcplog(f"Replacing {TARGET_IP} with {LOCAL_IP}")
+                    data = data.replace(TARGET_IP.encode(), LOCAL_IP.encode())
             elif is_rtp_packet(data):
                 print(f"Intercepted RTP packet: {data}")
             else:
